@@ -10,38 +10,55 @@ Built for the Armanious Foundation / ESP team to manage near-expiry medicine sto
 - **Products** – Catalog of medicines with codes, categories, prices
 - **Inventory** – Lot + expiry tracking, bin locations, stock adjustments
 - **Transactions** – Receipt / issue history
+- **Neon Postgres** – Persistent multi-user storage via Prisma
 - **Seed data** – Pre-loaded with the latest “Available Medicines for donation” list (29 lots)
-
-Data is stored in the browser (`localStorage`) so it works instantly on Vercel with no database required.
 
 ## Tech Stack
 
 - Next.js 14 (App Router)
-- TypeScript
-- Tailwind CSS
-- date-fns
-- lucide-react
+- TypeScript + Tailwind CSS
+- Prisma + Neon (serverless Postgres)
+- date-fns, lucide-react
 
 ## Quick Start
 
 ```bash
+git clone https://github.com/ArmaniousESP/openboxes-lite.git
+cd openboxes-lite
 npm install
+
+# 1. Create .env from the example
+cp .env.example .env
+# Edit .env and set DATABASE_URL to your Neon connection string
+
+# 2. Create tables on Neon
+npm run db:push
+
+# 3. Seed medicine donation data
+npm run db:seed
+
+# 4. Run the app
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
+Optional: browse data with `npm run db:studio`.
+
+## Neon / Vercel setup
+
+1. Create a Neon database (or use the one you already have).
+2. Copy the connection string into `.env` as `DATABASE_URL`.
+3. On Vercel: Project → Settings → Environment Variables → add `DATABASE_URL` for Production / Preview / Development.
+4. Deploy. The `postinstall` script runs `prisma generate` automatically.
+
+**Never commit `.env`** — it is gitignored. Only `.env.example` is in the repo.
+
 ## Deploy to Vercel
 
-1. Push this repo to GitHub (already done if you cloned from ArmaniousESP/openboxes-lite).
-2. Go to [vercel.com/new](https://vercel.com/new) and import the repository.
-3. Click **Deploy** — no environment variables needed.
-
-Or use the Vercel CLI:
-
-```bash
-npx vercel
-```
+1. Go to [vercel.com/new](https://vercel.com/new) and import this repository.
+2. Add the `DATABASE_URL` environment variable.
+3. Click **Deploy**.
 
 ## Mapping from original OpenBoxes concepts
 
