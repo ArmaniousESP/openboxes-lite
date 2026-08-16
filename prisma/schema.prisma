@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id                  String          @id @default(cuid())
+  productCode         String          @unique
+  name                String
+  description         String?
+  category            String          @default("Donation Stock")
+  unitOfMeasure       String          @default("EA")
+  lotAndExpiryControl Boolean         @default(true)
+  active              Boolean         @default(true)
+  unitPrice           Float?
+  createdAt           DateTime        @default(now())
+  inventoryItems      InventoryItem[]
+}
+
+model InventoryItem {
+  id             String             @id @default(cuid())
+  productId      String
+  product        Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  lotNumber      String
+  expirationDate DateTime           @db.Date
+  quantity       Int                @default(0)
+  binLocation    String
+  orgCode        String?
+  entries        TransactionEntry[]
+
+  @@unique([productId, lotNumber])
+  @@index([expirationDate])
+}
+
+model Transaction {
+  id        String             @id @default(cuid())
+  type      String // RECEIPT | ISSUE | ADJUSTMENT | INVENTORY
+  date      DateTime           @default(now())
+  notes     String?
+  entries   TransactionEntry[]
+}
+
+model TransactionEntry {
+  id              String        @id @default(cuid())
+  transactionId   String
+  transaction     Transaction   @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  quantity        Int // positive = in, negative = out
+}
