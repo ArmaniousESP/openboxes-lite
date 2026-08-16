@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -35,7 +36,7 @@ const rawMedicines = [
 ];
 
 async function main() {
-  console.log("Seeding OpenBoxes Lite database...");
+  console.log("Seeding OpenBoxes Lite\u2026");
 
   await prisma.transactionEntry.deleteMany();
   await prisma.transaction.deleteMany();
@@ -61,7 +62,7 @@ async function main() {
       });
       productId = product.id;
       productCache.set(m.code, productId);
-      console.log(`  Product: ${m.code}`);
+      console.log(`  + product ${m.code}`);
     }
 
     await prisma.inventoryItem.create({
@@ -74,14 +75,31 @@ async function main() {
         orgCode: "PFA",
       },
     });
-    console.log(`    Lot ${m.lot} qty=${m.qty}`);
   }
 
-  const counts = {
-    products: await prisma.product.count(),
-    inventory: await prisma.inventoryItem.count(),
-  };
-  console.log(`Done. ${counts.products} products, ${counts.inventory} inventory lots.`);
+  const lots = await prisma.inventoryItem.findMany();
+  if (lots.length > 0) {
+    await prisma.transaction.create({
+      data: {
+        type: "RECEIPT",
+        notes: "Seed: opening stock from Available Medicines for donation",
+        entries: {
+          create: lots.map((lot) => ({
+            inventoryItemId: lot.id,
+            quantity: lot.quantity,
+          })),
+        },
+      },
+    });
+  }
+
+  const [products, inventory, transactions] = await Promise.all([
+    prisma.product.count(),
+    prisma.inventoryItem.count(),
+    prisma.transaction.count(),
+  ]);
+
+  console.log(`Done. ${products} products \u00b7 ${inventory} lots \u00b7 ${transactions} transactions`);
 }
 
 main()
@@ -89,6 +107,4 @@ main()
     console.error(e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => prisma.$disconnect());
