@@ -1,6 +1,6 @@
 {
   "name": "openboxes-lite",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,9 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
     "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
